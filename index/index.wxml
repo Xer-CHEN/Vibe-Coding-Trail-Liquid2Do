@@ -1,0 +1,112 @@
+<!-- pages/index/index.wxml -->
+<view class="page">
+  <view class="bg"></view>
+
+  <!-- 顶部信息栏 -->
+  <view class="header glass">
+    <view class="title">待办清单</view>
+    <view class="sub">今天也要元气满满 ✨</view>
+    <view class="sortbar">
+      <view class="count">共 {{list.length}} 项 · 待办 {{pendingCount}}</view>
+      <view class="headbtns">
+        <view class="sortbtn" bindtap="toggleSort">
+          <text>{{sortAsc ? '↑ 截止最早' : '↓ 截止最晚'}}</text>
+        </view>
+        <view class="clearbtn" bindtap="clearDone">清空已完成</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 列表 -->
+  <scroll-view class="list" scroll-y wx:if="{{list.length}}">
+    <view
+      wx:for="{{list}}"
+      wx:key="_id"
+      class="card glass {{item.done ? 'done' : ''}} {{item.overdue ? 'overdue' : ''}}">
+
+      <!-- 完成勾选 -->
+      <view
+        class="check {{item.done ? 'checked' : ''}}"
+        bindtap="toggleDone"
+        data-id="{{item._id}}"
+        data-done="{{item.done}}">
+        <text wx:if="{{item.done}}" class="checkmark">✓</text>
+      </view>
+
+      <!-- 主体（点击编辑） -->
+      <view class="body" bindtap="openEdit" data-item="{{item}}">
+        <view class="cardtitle">{{item.title}}</view>
+        <view class="content" wx:if="{{item.content}}">{{item.content}}</view>
+        <view class="meta">
+          <text class="chip">📅 {{item.dueText}}</text>
+          <text class="chip remind" wx:if="{{item.reminder}}">🔔 已设提醒</text>
+          <text class="chip warn" wx:if="{{item.overdue}}">⏰ 已逾期</text>
+        </view>
+      </view>
+
+      <!-- 删除 -->
+      <view class="actions">
+        <view class="delbtn" catchtap="deleteItem" data-id="{{item._id}}">删除</view>
+      </view>
+    </view>
+    <view class="bottomspace"></view>
+  </scroll-view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:else>
+    <view class="emptyglyph">🗒️</view>
+    <view>还没有待办，点右下角按钮添加吧</view>
+  </view>
+
+  <!-- 悬浮新建按钮 -->
+  <view class="fab" bindtap="openAdd">
+    <text class="fabplus">+</text>
+  </view>
+
+  <!-- 新建 / 编辑 底部弹层 -->
+  <view class="mask" wx:if="{{showModal}}" bindtap="closeModal" style="padding-bottom: {{kbOffset}}px;">
+    <view class="sheet glass" catchtap="noop">
+      <view class="sheethead">
+        <text>{{editId ? '编辑待办' : '新建待办'}}</text>
+        <text class="close" bindtap="closeModal">✕</text>
+      </view>
+
+      <view class="field">
+        <text class="label">标题</text>
+        <input class="input" placeholder="要做什么？" value="{{form.title}}" bindinput="onTitle" maxlength="40" adjust-position="{{false}}" />
+      </view>
+
+      <!-- 补充说明：默认折叠，点击才展开要求输入 -->
+      <view wx:if="{{showContent}}" class="field">
+        <text class="label">补充说明</text>
+        <textarea class="input area" placeholder="补充说明（可选）" value="{{form.content}}" bindinput="onContent" bindblur="onContentBlur" focus="{{contentFocus}}" maxlength="200" adjust-position="{{false}}" />
+      </view>
+      <view wx:else class="addcontent" bindtap="toggleContent">
+        <text class="plus">＋</text>
+        <text>添加补充说明（可选）</text>
+      </view>
+
+      <view class="field row">
+        <view class="pickerbox">
+          <text class="label">截止日期</text>
+          <picker mode="date" value="{{form.date}}" bindchange="onDate">
+            <view class="picker">{{form.date || '选择日期'}}</view>
+          </picker>
+        </view>
+        <view class="pickerbox">
+          <text class="label">时间</text>
+          <picker mode="time" value="{{form.time}}" bindchange="onTime">
+            <view class="picker">{{form.time || '选择时间'}}</view>
+          </picker>
+        </view>
+      </view>
+
+      <view class="field row reminder-row">
+        <text class="label">微信提醒</text>
+        <switch checked="{{reminder}}" bindchange="onReminder" color="#3a93ff" />
+      </view>
+
+      <view class="savebtn" bindtap="save">{{editId ? '保存' : '添加'}}</view>
+    </view>
+  </view>
+</view>
